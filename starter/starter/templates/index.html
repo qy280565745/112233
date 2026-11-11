@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>次元语音伙伴</title>
+<style>
+:root{
+  --accent:#EC407A; --accent2:#AB47BC; --soft:#FCE4EC; --soft2:#F3E5F5;
+  --ink:#4A3049; --card:#fff; --line:#F8BBD0;
+}
+body[data-role="tsundere"]{--accent:#EC407A;--accent2:#AB47BC;--soft:#FCE4EC;--soft2:#F3E5F5;--ink:#4A3049;--line:#F8BBD0;}
+body[data-role="genki"]{--accent:#FB8C00;--accent2:#FDD835;--soft:#FFF3E0;--soft2:#FFFDE7;--ink:#4E342E;--line:#FFCC80;}
+body[data-role="senpai"]{--accent:#1E88E5;--accent2:#26A69A;--soft:#E3F2FD;--soft2:#E0F2F1;--ink:#1F3550;--line:#90CAF9;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif;}
+body{background:linear-gradient(160deg,var(--soft),var(--soft2));color:var(--ink);min-height:100vh;transition:background .6s;}
+.top{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;padding:20px 36px;box-shadow:0 4px 18px rgba(0,0,0,.12);}
+.top h1{font-size:22px;letter-spacing:3px;}
+.top p{opacity:.9;margin-top:6px;font-size:13px;}
+.badges{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+.badge{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.45);border-radius:12px;padding:3px 12px;font-size:12px;}
+.badge.count{background:#fff;color:var(--accent);font-weight:700;border-color:#fff;}
+.wrap{max-width:960px;margin:22px auto;padding:0 20px;display:grid;grid-template-columns:200px 1fr;gap:16px;}
+@media(max-width:680px){.wrap{grid-template-columns:1fr;}}
+.side{display:flex;flex-direction:column;gap:10px;}
+.char{background:var(--card);border:2px solid transparent;border-radius:14px;padding:14px 8px;text-align:center;font-size:13px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.05);transition:transform .2s,border-color .2s;}
+.char:hover{transform:translateY(-2px);}
+.char.active{border-color:var(--accent);font-weight:700;}
+.char .face{width:56px;height:56px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 35% 30%,#fff,var(--soft));border:2px solid var(--line);}
+.char .fav{font-size:12px;color:var(--accent);margin-top:5px;}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:14px 12px;font-size:12px;line-height:1.7;}
+.add-btn{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.12);}
+.creator{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:12px;display:none;font-size:12px;}
+.creator.show{display:block;}
+.creator input,.creator select{width:100%;margin:5px 0;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;outline:none;}
+.creator button{width:100%;margin-top:6px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px;cursor:pointer;font-size:12px;}
+.creator .tip{opacity:.7;margin-top:6px;line-height:1.5;}
+.creator .err{color:#C62828;margin-top:6px;line-height:1.5;min-height:1em;}
+.stage{background:var(--card);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 16px rgba(0,0,0,.06);position:relative;overflow:hidden;}
+.stage::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,var(--soft),transparent 70%);pointer-events:none;}
+.stage .big-face{width:84px;height:84px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:46px;background:radial-gradient(circle at 35% 30%,#fff,var(--soft));border:3px solid var(--line);animation:bob 3s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.stage .info{min-width:0;flex:1;}
+.stage .s-name{font-size:18px;font-weight:700;}
+.stage .s-tag{font-size:12px;margin-top:4px;opacity:.8;word-break:break-all;}
+.stage .s-tag b{font-weight:600;}
+.stage .s-love{margin-top:6px;font-size:14px;color:var(--accent);letter-spacing:1px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.hack{font-size:12px;letter-spacing:0;border:1px dashed var(--accent);background:#fff;color:var(--accent);border-radius:10px;padding:2px 10px;cursor:pointer;}
+.hack-msg{font-size:12px;letter-spacing:0;color:var(--ink);opacity:.85;}
+.mode-tag{flex-shrink:0;font-size:12px;border:1px solid var(--line);border-radius:12px;padding:4px 12px;background:var(--soft);position:relative;z-index:1;}
+.chat-box{background:var(--card);border-radius:16px;margin-top:14px;padding:16px;display:flex;flex-direction:column;height:380px;box-shadow:0 4px 16px rgba(0,0,0,.06);}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;}
+.msg{max-width:78%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.6;white-space:pre-wrap;animation:pop .25s ease;}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.ai{background:var(--soft);border:1px solid var(--line);align-self:flex-start;border-top-left-radius:4px;}
+.msg.me{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;align-self:flex-end;border-top-right-radius:4px;}
+.msg .ai-mark{font-size:10px;color:var(--accent2);margin-bottom:2px;}
+.wave{display:inline-flex;gap:2px;margin-left:8px;vertical-align:middle;height:14px;align-items:flex-end;}
+.wave i{width:3px;background:var(--accent);border-radius:2px;animation:wv 1s ease-in-out infinite;}
+.wave i:nth-child(2){animation-delay:.15s}.wave i:nth-child(3){animation-delay:.3s}.wave i:nth-child(4){animation-delay:.45s}
+@keyframes wv{0%,100%{height:4px}50%{height:14px}}
+.chat-input{display:flex;gap:8px;margin-top:12px;align-items:center;}
+.chat-input input{flex:1;min-width:0;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font-size:14px;outline:none;background:#fff;}
+.chat-input input:focus{border-color:var(--accent);}
+.btn{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:20px;padding:10px 18px;font-size:14px;cursor:pointer;white-space:nowrap;}
+.ai-toggle{display:flex;align-items:center;gap:5px;font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:8px 12px;cursor:pointer;user-select:none;white-space:nowrap;}
+.ai-toggle input{accent-color:var(--accent2);}
+.fly{position:fixed;font-size:22px;color:var(--accent);pointer-events:none;animation:flyup 1.4s ease-out forwards;z-index:99;text-shadow:0 2px 6px rgba(0,0,0,.15);}
+@keyframes flyup{from{opacity:1;transform:translateY(0) scale(.8)}to{opacity:0;transform:translateY(-90px) scale(1.4)}}
+audio{height:0;width:0;}
+</style>
+</head>
+<body data-role="genki">
+<div class="top">
+  <h1>🎀 次元语音伙伴</h1>
+  <p>选一位伙伴跟 TA 聊天。TA 用自己的声线和口癖回你，被夸会涨好感。</p>
+  <div class="badges">
+    <span class="badge count" id="countBadge">已登记 ? 位伙伴</span>
+    <span class="badge">🗂 规则模式：按 respond 里写的回法回话</span>
+    <span class="badge">✨ AI 模式：星火读名字、口癖和好感来回话</span>
+    <span class="badge">⚙️ 自建伙伴：用 from_dict 造出新伙伴</span>
+  </div>
+</div>
+<div class="wrap">
+  <div class="side">
+    <div id="charList" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <button class="add-btn" onclick="toggleCreator()">＋ 自建伙伴</button>
+    <div class="creator" id="creator">
+      <b>⚙️ 造一位新伙伴</b>
+      <input id="cName" placeholder="名字，最多 8 个字" maxlength="12">
+      <select id="cVoice">
+        <option value="x4_yezi">叶子 · 甜妹音</option>
+        <option value="x4_xiaoyan">小燕 · 元气少女</option>
+        <option value="x4_jingjing">静静 · 温柔学姐</option>
+      </select>
+      <input id="cCatch" placeholder="口癖，例如：喵～今天也要开心" maxlength="30">
+      <input id="cPersona" placeholder="人设（可以不填），例如：猫耳女仆" maxlength="50">
+      <button onclick="createRole()">造出来！</button>
+      <div class="err" id="cErr"></div>
+      <div class="tip">造好后左边多一张卡片。关掉再运行 app.py，它还在。</div>
+    </div>
+  </div>
+  <div>
+    <div class="stage">
+      <div class="big-face" id="sFace">😊</div>
+      <div class="info">
+        <div class="s-name" id="sName">还没选伙伴</div>
+        <div class="s-tag"><b>名牌：</b><span id="sTag">点左边的一位伙伴</span></div>
+        <div class="s-love"><span id="sLove">♥ 0</span><button class="hack" onclick="hack()" title="在外面写 role.love = 999">直接改成 999</button><span class="hack-msg" id="hackMsg"></span></div>
+      </div>
+      <div class="mode-tag" id="modeTag">🗂 规则模式</div>
+    </div>
+    <div class="chat-box">
+      <div class="msgs" id="msgs"></div>
+      <div class="chat-input">
+        <input id="inp" placeholder="对 TA 说点什么，比如：夸夸我" onkeydown="if(event.key==='Enter')send()">
+        <label class="ai-toggle" title="让星火按名字、口癖和好感回话"><input type="checkbox" id="aiMode">✨AI</label>
+        <button class="btn" onclick="recall()" title="让 TA 说出你们聊了几句">📜</button>
+        <button class="btn" onclick="send()">发送</button>
+      </div>
+    </div>
+  </div>
+</div>
+<audio id="au"></audio>
+<script>
+let cur=null;
+const msgs=document.getElementById('msgs'), inp=document.getElementById('inp'), au=document.getElementById('au');
+const loveCache={};
+async function api(u,opt){const r=await fetch(u,opt);return r.json();}
+function aiMode(){return document.getElementById('aiMode').checked;}
+
+function add(who,text,isAi){
+  const d=document.createElement('div');d.className='msg '+who;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  if(isAi){const m=document.createElement('div');m.className='ai-mark';m.textContent='✨ 星火大模型';d.appendChild(m);}
+  const t=document.createElement('span');d.appendChild(t);
+  if(isAi){
+    let i=0;const full=String(text||'');
+    const timer=setInterval(()=>{t.textContent=full.slice(0,++i);msgs.scrollTop=msgs.scrollHeight;if(i>=full.length)clearInterval(timer);},45);
+  }else{t.textContent=text;}
+  return d;
+}
+function play(url,bubble){
+  if(!url)return;
+  au.src=url;
+  if(bubble){
+    const w=document.createElement('span');w.className='wave';w.innerHTML='<i></i><i></i><i></i><i></i>';
+    bubble.appendChild(w);au.onended=()=>w.remove();
+  }
+  au.play().catch(()=>{});
+}
+function flyHeart(delta){
+  const stage=document.querySelector('.stage').getBoundingClientRect();
+  const f=document.createElement('div');f.className='fly';f.textContent='♥+'+delta;
+  f.style.left=(stage.left+stage.width/2)+'px';f.style.top=(stage.top+10)+'px';
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1400);
+}
+function showStage(r){
+  document.getElementById('sFace').textContent=r.face;
+  document.getElementById('sName').textContent=r.name;
+  document.getElementById('sTag').textContent=r.tag||'';
+  document.getElementById('sLove').textContent='♥ '+r.love;
+}
+async function loadRoles(){
+  const d=await api('/api/roles');
+  const roles=d.roles||[];
+  document.getElementById('countBadge').textContent='已登记 '+(d.count===null||d.count===undefined?'?':d.count)+' 位伙伴';
+  const box=document.getElementById('charList');
+  if(!roles.length){
+    box.innerHTML='<div class="empty">还没有伙伴。先在 characters.py 里写好 Character，再到 services.py 的 ROLES 里登记三位，然后重新运行 app.py。</div>';
+    return roles;
+  }
+  box.innerHTML=roles.map(r=>`<div class="char ${r.key===cur?'active':''}" id="ch_${r.key}" onclick="switchRole('${r.key}')">
+      <div class="face">${r.face}</div>${r.name}<div class="fav">♥ ${r.love}</div></div>`).join('');
+  roles.forEach(r=>{
+    const prev=loveCache[r.key];loveCache[r.key]=r.love;
+    if(prev!==undefined&&r.love>prev&&r.key===cur)flyHeart(r.love-prev);
+    if(r.key===cur)showStage(r);
+  });
+  return roles;
+}
+async function switchRole(k){
+  cur=k;document.body.dataset.role=k;
+  document.getElementById('hackMsg').textContent='';
+  const roles=await loadRoles();
+  const r=roles.find(x=>x.key===k);if(!r)return;
+  showStage(r);
+  const g=await api('/api/greet?role='+k);
+  if(g.text){const b=add('ai',g.text);play(g.audio,b);}
+  else{add('ai','（'+r.name+' 没打出招呼：greet 还没写，或者运行出错了，看运行窗口里「这里出错了」那一行）');}
+}
+async function send(){
+  const msg=inp.value.trim();if(!msg||!cur){if(!cur)add('ai','先点左边选一位伙伴。');return;}
+  add('me',msg);inp.value='';
+  const ai=aiMode();
+  const wait=add('ai',ai?'星火正在想……':'……');
+  let d={};
+  try{d=await api(ai?'/api/chat_ai':'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:cur,msg})});}
+  finally{wait.remove();}
+  if(d.text){const b=add('ai',d.text,ai);play(d.audio,b);}
+  loadRoles();
+}
+async function recall(){
+  if(!cur){add('ai','先点左边选一位伙伴。');return;}
+  const d=await api('/api/recall?role='+cur);
+  if(d.text){const b=add('ai',d.text);play(d.audio,b);}
+  else{add('ai','（还不会回忆：在 characters.py 里写好 recall）');}
+}
+async function hack(){
+  if(!cur){add('ai','先点左边选一位伙伴。');return;}
+  const d=await api('/api/hack',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:cur})});
+  document.getElementById('hackMsg').textContent=d.msg;
+  loadRoles();
+}
+function toggleCreator(){document.getElementById('creator').classList.toggle('show');}
+async function createRole(){
+  const body={name:document.getElementById('cName').value,voice:document.getElementById('cVoice').value,
+              catchphrase:document.getElementById('cCatch').value,persona:document.getElementById('cPersona').value};
+  const d=await api('/api/roles/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const err=document.getElementById('cErr');
+  if(!d.ok){err.textContent=d.msg||'没有造出来';return;}
+  err.textContent='';
+  document.getElementById('creator').classList.remove('show');
+  ['cName','cCatch','cPersona'].forEach(id=>document.getElementById(id).value='');
+  await loadRoles();switchRole(d.key);
+}
+document.getElementById('aiMode').addEventListener('change',e=>{
+  document.getElementById('modeTag').textContent=e.target.checked?'✨ AI 模式（星火）':'🗂 规则模式';
+});
+loadRoles();
+add('ai','点左边选一位伙伴开始聊天。检查自己写的回话时，不要勾 ✨AI。');
+</script>
+</body>
+</html>
