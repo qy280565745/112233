@@ -71,3 +71,5 @@ try:
     a07.wrong = 0
 except AttributeError:
     print("输错次数只能看，不能改")
+#到此一游
+print(a03.__code)
